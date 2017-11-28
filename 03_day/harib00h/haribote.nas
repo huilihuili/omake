@@ -1,25 +1,25 @@
 ; haribote-os
 ; TAB=4
 
-; �L?BOOT_INFO
-CYLS	EQU		0x0ff0			; ?��??��
+; 有关BOOT_INFO
+CYLS	EQU		0x0ff0			; 设定启动区
 LEDS	EQU		0x0ff1
-VMODE	EQU		0x0ff2			; ?��?�F���ړI�M���B?�F�I�ʐ�
-SCRNX	EQU		0x0ff4			; ������X
-SCRNY	EQU		0x0ff6			; ������Y
-VRAM	EQU		0x0ff8			; ?��?�t��I?�n�n��
+VMODE	EQU		0x0ff2			; 关于颜色数目的信息。颜色的位数
+SCRNX	EQU		0x0ff4			; 分辨率X
+SCRNY	EQU		0x0ff6			; 分辨率Y
+VRAM	EQU		0x0ff8			; 图像缓存区的开始地址
 
-		ORG		0xc200			; ?�������v�푕?�������I�Y?�n��
+		ORG		0xc200			; 这个程序要被装载到内存的什么地方
 
-		MOV		AL,0x13			; VGA ??�C320*200*8�ʍʐF
+		MOV		AL,0x13			; VGA 显卡，320*200*8位彩色
 		MOV		AH,0x00
 		INT		0x10
-		MOV		BYTE [VMODE],8	; ??��ʖ͎�
+		MOV		BYTE [VMODE],8	; 记录画面模式
 		MOV		WORD [SCRNX],320
 		MOV		WORD [SCRNY],200
 		MOV		DWORD [VRAM],0x000a0000
 
-; �pBIOS�擾??��e?LED�w�����I��?
+; 用BIOS取得键盘上各种LED指示灯的状态
 
 		MOV		AH,0x02
 		INT		0x16 			; keyboard BIOS
