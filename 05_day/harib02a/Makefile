@@ -1,0 +1,83 @@
+TOOLPATH = ../../tolset/z_tools/
+INCPATH  = ../../tolset/z_tools/haribote/
+
+
+MAKE = $(TOOLPATH)make.exe -r
+NASK = $(TOOLPATH)nask.exe
+
+CC1 = $(TOOLPATH)cc1.exe -I$(INCPATH) -Os -Wall -quiet
+GAS2NASK = $(TOOLPATH)gas2nask.exe -a
+OBJ2BIM  = $(TOOLPATH)obj2bim.exe
+BIM2HRB  = $(TOOLPATH)bim2hrb.exe
+RULEFILE = $(TOOLPATH)haribote/haribote.rul
+
+EDIMG = $(TOOLPATH)edimg.exe
+IMGTOL = $(TOOLPATH)imgtol.com
+COPY = copy
+DEL = del
+
+
+# 执行不带参数的make时候，就相当于执行"make img"命令
+default :
+	$(MAKE) img
+
+# 如果想要制作ipl.bin，就下检查一下ipl.nas和Makefile这两个文件是否都准备好了
+ipl10.bin : ipl10.nas Makefile 
+	$(NASK) ipl10.nas ipl10.bin ipl10.lst
+
+asmhead.bin : asmhead.nas Makefile
+	$(NASK) asmhead.nas asmhead.bin asmhead.lst
+
+bootpack.gas : bootpack.c Makefile
+	$(CC1) -o bootpack.gas bootpack.c
+
+bootpack.nas : bootpack.gas Makefile
+	$(GAS2NASK) bootpack.gas bootpack.nas
+
+bootpack.obj : bootpack.nas Makefile
+	$(NASK) bootpack.nas bootpack.obj bootpack.lst
+
+naskfunc.obj : naskfunc.nas Makefile
+	$(NASK) naskfunc.nas naskfunc.obj naskfunc.lst
+	
+bootpack.bim : bootpack.obj naskfunc.obj Makefile
+	$(OBJ2BIM) @$(RULEFILE) out:bootpack.bim stack:3136k map:bootpack.map \
+		bootpack.obj naskfunc.obj
+# 3MB+64KB=3136KB
+
+bootpack.hrb : bootpack.bim Makefile
+	$(BIM2HRB) bootpack.bim bootpack.hrb 0
+	
+haribote.sys : asmhead.bin bootpack.hrb Makefile
+	copy /B asmhead.bin+bootpack.hrb haribote.sys
+
+haribote.img : ipl10.bin haribote.sys Makefile
+	$(EDIMG)   imgin:../../tolset/z_tools/fdimg0at.tek \
+		wbinimg src:ipl10.bin len:512 from:0 to:0 \
+		copy from:haribote.sys to:@: \
+		imgout:haribote.img
+	
+# 命令
+img :
+	$(MAKE) haribote.img 
+	
+run :
+	$(MAKE) img
+	$(COPY) haribote.img ..\..\tolset\z_tools\qemu\fdimage0.bin
+	$(MAKE) -C ../../tolset/z_tools/qemu
+
+# 删除ipl.bin和 ipl.lst文件
+clean :
+	-$(DEL) *.bin
+	-$(DEL) *.lst
+	-$(DEL) *.gas
+	-$(DEL) *.obj
+	-$(DEL) bootpack.nas
+	-$(DEL) bootpack.map
+	-$(DEL) bootpack.bim
+	-$(DEL) bootpack.hrb
+	-$(DEL) haribote.sys
+# 执行clean命令，并且删除helloos.img文件
+src_only :
+	$(MAKE) clean
+	-$(DEL) haribote.img
