@@ -7,7 +7,24 @@ void io_store_eflags(int eflags);
 
 void init_palette(void);
 void set_palette(int start, int end, unsigned char *rgb);
+void boxfill8(unsigned char *vram, int xsize, unsigned char c, int x0, int y0, int x1, int y1);
 
+#define COL8_000000		0		/*	0:黑		*/
+#define COL8_ff0000		1		/*	1:亮红		*/
+#define COL8_00ff00		2		/*	2:亮绿		*/
+#define COL8_ffff00		3		/*	3:亮黄		*/
+#define COL8_0000ff		4		/*	4:亮蓝		*/
+#define COL8_ff00ff		5		/*	5:亮紫		*/
+#define COL8_00ffff		6		/*	6:浅亮蓝	*/
+#define COL8_ffffff		7		/*	7:白		*/
+#define COL8_c6c6c6		8		/*	8:亮灰		*/
+#define COL8_840000		9		/*	9:暗红		*/
+#define COL8_008400		10		/*	10:暗绿		*/
+#define COL8_848400		11		/*	11:暗黄		*/
+#define COL8_000084		12		/*	12:暗青		*/
+#define COL8_840084		13		/*	13:暗紫		*/
+#define COL8_008484		14		/*	14:浅暗蓝	*/
+#define COL8_848484		15		/*	15:暗灰		*/
 
 void HariMain(void)
 {
@@ -18,9 +35,10 @@ void HariMain(void)
 	init_palette();
 	
 	p = (char*) 0xa0000;
-	for (i = 0; i <= 0xaffff; i++) {
-		p[i] = i & 0x0f;
-	}
+	
+	boxfill8(p, 320, COL8_ff0000, 20, 20, 120, 120);
+	boxfill8(p, 320, COL8_00ffff, 70, 50, 170, 150);
+	boxfill8(p, 320, COL8_ffff00, 120, 80, 220, 180);
 	
 	for (;;) {
 		io_hlt();
@@ -64,5 +82,14 @@ void set_palette(int start, int end, unsigned char *rgb) {
 	}
 	io_store_eflags(eflags);		/*	复原中断标志许可标志*/
 	return;
+}
+
+void boxfill8(unsigned char *vram, int xsize, unsigned char c, int x0, int y0, int x1, int y1) {
+	int x, y;
+	for (y = y0; y <= y1; y++) {
+		for (x = x0; x <= x1; x++) {
+			vram[y * xsize + x] = c;
+		}
+	}
 }
 
