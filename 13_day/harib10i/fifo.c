@@ -13,7 +13,7 @@ void fifo32_init(struct FIFO32 *fifo, int size, int *buf) {
 }
 
 
-int fifo32_put(struct FIFO32 *fifo, unsigned char data) {
+int fifo32_put(struct FIFO32 *fifo, int data) {
 	if (fifo->free == 0) {
 		fifo->flags |= FLAGS_OVERRUN;
 		return -1;
